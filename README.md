@@ -17,6 +17,8 @@ your harness  ──MCP(stdio)──▶  higor-agent serve  ──HTTP──▶ 
 The package contains **no model and no provider SDK**. Your harness is the only thing that
 talks to an LLM, which is what makes the same workflow portable.
 
+![The higor-agent viewer showing a ranked digest of ten papers](docs/screenshot.png)
+
 ## What it does
 
 1. **Collect.** One sweep per digest: your topic phrases on Semantic Scholar (exact-phrase,
@@ -57,6 +59,10 @@ uv run higor-agent view
 ```
 
 The viewer follows the file, so the list updates as the agent publishes it.
+
+Press `d` on any paper for the abstract and the scoring signals behind its rank.
+
+![The abstract pane open on a paper, showing its final, topical and venue scores](docs/screenshot-detail.png)
 
 ### Keys
 
@@ -129,4 +135,8 @@ cd ~/my-research && claude -p "$(uv run --directory ~/Work/higor-agent higor-age
 ```bash
 uv run pytest -v
 uv run higor-agent install reference   # regenerate integrations/ after editing agent/higor.md
+uv run python scripts/screenshot.py    # regenerate the README images from your own list
 ```
+
+`scripts/screenshot.py` draws whatever is in your state directory, so pass `--state` a copy
+if you would rather not publish your own papers. It never writes to the reading log.

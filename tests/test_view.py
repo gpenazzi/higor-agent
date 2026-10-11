@@ -105,3 +105,26 @@ class TestLogRoundTrip:
         store.log_interaction(PaperInteraction(paper_id="x", paper_title="T", action="saved"))
         assert store.recent_interactions()[0].paper_title == "T"
         assert paths.reading_log_path().exists()
+
+
+class TestMetaLine:
+    def test_missing_authors_leave_no_dangling_separator(self):
+        from higor_agent.view import _paper_list_text
+
+        line = _paper_list_text(make_paper(1, authors=[], journal="Nature")).plain
+        assert "· Nature" not in line
+        assert "Nature · " in line
+
+    def test_a_paper_with_no_metadata_at_all_renders(self):
+        from higor_agent.view import _paper_list_text
+
+        line = _paper_list_text(
+            make_paper(1, authors=[], journal="", published=None)
+        ).plain
+        assert "·" not in line
+
+    def test_extra_authors_are_counted(self):
+        from higor_agent.view import _paper_list_text
+
+        line = _paper_list_text(make_paper(1)).plain  # four authors
+        assert "+1" in line

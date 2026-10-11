@@ -73,13 +73,18 @@ def _paper_list_text(paper: Paper) -> Text:
     if paper.handle:
         t.append(f"{paper.handle} ", style=_DIM)
     t.append(paper.title + "\n", style=f"bold {_FG}")
-    extra = f" +{len(paper.authors) - 3}" if len(paper.authors) > 3 else ""
-    meta = "       " + ", ".join(paper.authors[:3]) + extra
+    # Join only the parts we have: Semantic Scholar leaves authors or venue empty often
+    # enough that a fixed layout would show dangling separators.
+    parts = []
+    if paper.authors:
+        extra = f" +{len(paper.authors) - 3}" if len(paper.authors) > 3 else ""
+        parts.append(", ".join(paper.authors[:3]) + extra)
     if paper.journal:
-        meta += f" · {paper.journal}"
+        parts.append(paper.journal)
     if paper.published:
-        meta += f" · {paper.published:%Y-%m-%d}"
-    t.append(meta + "\n", style=_DIM)
+        parts.append(f"{paper.published:%Y-%m-%d}")
+    if parts:
+        t.append("       " + " · ".join(parts) + "\n", style=_DIM)
     if paper.cites_author_paper:
         t.append(f'       cites: "{paper.cites_author_paper}"\n', style=f"{_ACCENT} italic")
     if paper.summary:
