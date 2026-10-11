@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "higor-agent"
+version = "0.1.0"
+description = "Literature-screening tools for any agent harness: an MCP server, a ranking core and a terminal viewer"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.2",
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "tomli-w>=1.0",
+    "rich>=13.0",
+    "textual>=0.70",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-mock>=3.12",
+    "pytest-httpx>=0.35",
+]
+
+[project.scripts]
+higor-agent = "higor_agent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["higor_agent*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

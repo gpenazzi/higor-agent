@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "higor": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/gabrielepenazzi/Work/higor-agent",
+        "higor-agent",
+        "serve"
+      ]
+    }
+  }
+}
