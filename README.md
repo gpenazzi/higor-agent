@@ -2,10 +2,9 @@
 
 Literature screening for **any** agent harness.
 
-[Higor](../higor) was a terminal app that owned its own Claude session. This is the same
-capability factored so the loop lives in whatever harness you already use: Claude Code,
-Copilot in VS Code, Codex, Cursor. What ships here is a tool server, a ranking core, one
-instruction file, and a browser.
+The agent loop lives in whatever harness you already use: Claude Code, Copilot in VS Code,
+Codex, Cursor. What ships here is a tool server, a ranking core, one instruction file and a
+browser.
 
 ```
 your harness  ──MCP(stdio)──▶  higor-agent serve  ──HTTP──▶  Semantic Scholar · arXiv · Crossref
@@ -87,12 +86,14 @@ The viewer follows the file, so the list updates as the agent publishes it.
 Every paper the agent touches gets a handle like `#12`, stable for the life of the server
 process. Tools accept handles or raw ids; the browser and the snapshot show them.
 
-## Why the agent rates venues
+## Who judges what
 
-In the original Higor the tool layer called Claude directly to score unknown journals. That
-single call pinned the whole package to one provider. Here the host agent is asked for those
-judgements through `venues_needing_rating` and `set_venue_ratings`, and the server only
-caches, validates and blends. The cache is plain JSON and you can edit it by hand.
+Every judgement comes from the host agent. Topical relevance arrives through `show`, venue
+standing through `venues_needing_rating` and `set_venue_ratings`. That is why the package
+needs no model of its own: it validates, caches and blends, and never decides.
+
+A venue is rated once and the rating is reused by every later session, so the cache is worth
+keeping an eye on. It is plain JSON, sorted by name, and you can correct any entry by hand.
 
 ## Requirements
 
@@ -103,8 +104,7 @@ caches, validates and blends. The cache is plain JSON and you can edit it by han
 
 ## State
 
-Shared with the original Higor by default, so an existing installation keeps working. Set
-`HIGOR_DIR` to use a separate tree.
+Everything lives in `~/.higor` by default. Set `HIGOR_DIR` to use another tree.
 
 ```
 ~/.higor/
