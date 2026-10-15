@@ -85,11 +85,6 @@ def cmd_install(args: argparse.Namespace) -> int:
     )
     if args.target == "claude-code":
         console.print("Start Claude Code in that directory and ask it for your digest.")
-    elif args.target == "copilot":
-        console.print(
-            "Reload VS Code, start the MCP server from the Extensions view, then pick the "
-            "'higor' chat mode."
-        )
     console.print("Run [bold]higor-agent view[/bold] in a second terminal to watch the list.")
     return 0
 
@@ -132,7 +127,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("install", help="write the agent files for a harness")
     p.add_argument(
         "target",
-        choices=["claude-code", "copilot", "agents-md", "reference"],
+        choices=["claude-code", "agents-md", "reference"],
         help="which harness to wire up ('reference' regenerates integrations/)",
     )
     p.add_argument("--dest", default=".", help="directory to write into (default: here)")

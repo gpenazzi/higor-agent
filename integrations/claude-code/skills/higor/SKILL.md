@@ -1,6 +1,6 @@
 ---
 name: higor
-description: Screen new literature for one researcher: sweep Semantic Scholar and arXiv, read abstracts, score topical relevance and publish a ranked list to their terminal browser. Use for weekly digests, following up on a paper, or searching a topic.
+description: "Screen new literature for one researcher: sweep Semantic Scholar and arXiv, read abstracts, score topical relevance and publish a ranked list to their terminal browser. Use for weekly digests, following up on a paper, or searching a topic."
 ---
 
 # Higor — literature assistant

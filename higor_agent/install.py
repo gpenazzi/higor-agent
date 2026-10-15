@@ -43,18 +43,7 @@ def claude_skill(body: str | None = None) -> str:
     return (
         "---\n"
         "name: higor\n"
-        f"description: {SUMMARY}\n"
-        "---\n\n"
-        f"{body}\n"
-    )
-
-
-def copilot_chatmode(body: str | None = None) -> str:
-    body = body or instructions()
-    return (
-        "---\n"
-        f"description: '{SUMMARY}'\n"
-        "tools: ['higor']\n"
+        f"description: {json.dumps(SUMMARY)}\n"
         "---\n\n"
         f"{body}\n"
     )
@@ -107,15 +96,12 @@ def install(target: str, dest: Path, root: Path | None = None) -> list[str]:
     if target == "claude-code":
         _write(dest / ".claude" / "skills" / "higor" / "SKILL.md", claude_skill(), changed)
         _merge_json(dest / ".mcp.json", "mcpServers", changed, root)
-    elif target == "copilot":
-        _write(dest / ".github" / "chatmodes" / "higor.chatmode.md", copilot_chatmode(), changed)
-        _merge_json(dest / ".vscode" / "mcp.json", "servers", changed, root)
     elif target == "agents-md":
         _write(dest / "AGENTS.higor.md", agents_md(), changed)
         _merge_json(dest / ".mcp.json", "mcpServers", changed, root)
     else:
         raise ValueError(
-            f"unknown target {target!r}; expected claude-code, copilot or agents-md"
+            f"unknown target {target!r}; expected claude-code or agents-md"
         )
     return changed
 
@@ -129,12 +115,6 @@ def refresh_reference_copies(root: Path | None = None) -> list[str]:
     _write(
         base / "claude-code" / ".mcp.json",
         json.dumps(mcp_config("mcpServers", root), indent=2) + "\n",
-        changed,
-    )
-    _write(base / "copilot" / "higor.chatmode.md", copilot_chatmode(), changed)
-    _write(
-        base / "copilot" / "mcp.json",
-        json.dumps(mcp_config("servers", root), indent=2) + "\n",
         changed,
     )
     _write(base / "agents-md" / "AGENTS.higor.md", agents_md(), changed)

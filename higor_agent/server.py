@@ -1,7 +1,7 @@
 """The MCP server: the one place that knows about MCP.
 
-Run over stdio, so any host that speaks MCP can drive it — Claude Code, Copilot in
-VS Code, Codex, Cursor. The host owns the conversation and the model; this process owns
+Run over stdio, so any host that speaks MCP can drive it — Claude Code, Copilot
+CLI, Codex, Cursor. The host owns the conversation and the model; this process owns
 the papers, the handles and the on-disk state for as long as the host keeps it alive.
 """
 from __future__ import annotations

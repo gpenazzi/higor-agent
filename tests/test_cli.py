@@ -18,7 +18,7 @@ def parse(*argv):
     (["profile"], "profile"),
     (["profile", "--show"], "profile"),
     (["install", "claude-code"], "install"),
-    (["install", "copilot", "--dest", "/tmp"], "install"),
+    (["install", "agents-md", "--dest", "/tmp"], "install"),
     (["digest-prompt"], "digest-prompt"),
 ])
 def test_every_subcommand_is_reachable(argv, expected):

@@ -2,7 +2,7 @@
 
 Literature screening for **any** agent harness.
 
-The agent loop lives in whatever harness you already use: Claude Code, Copilot in VS Code,
+The agent loop lives in whatever harness you already use: Claude Code, Copilot CLI,
 Codex, Cursor. What ships here is a tool server, a ranking core, one instruction file and a
 browser.
 
@@ -48,9 +48,12 @@ server, and nothing else in your config is touched:
 
 ```bash
 uv run higor-agent install claude-code --dest ~/my-research   # .claude/skills + .mcp.json
-uv run higor-agent install copilot     --dest ~/my-research   # .github/chatmodes + .vscode/mcp.json
 uv run higor-agent install agents-md   --dest ~/my-research   # AGENTS fragment + .mcp.json
 ```
+
+GitHub Copilot CLI reads the same files as Claude Code (`.mcp.json` and `.claude/skills/`),
+so use the `claude-code` target for it. Copilot only loads a directory's MCP servers and
+skills once you trust it, so accept the trust prompt the first time you run `copilot` there.
 
 Open that directory in your harness and ask for your digest. In a second terminal:
 

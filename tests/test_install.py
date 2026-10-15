@@ -9,7 +9,7 @@ from higor_agent import install
 def test_every_wrapper_carries_the_instruction_body():
     body = install.instructions()
     assert "get_context" in body
-    for rendered in (install.claude_skill(), install.copilot_chatmode(), install.agents_md()):
+    for rendered in (install.claude_skill(), install.agents_md()):
         assert "Call `get_context`" in rendered
 
 
@@ -19,8 +19,10 @@ def test_claude_skill_declares_name_and_description():
     assert "description:" in text.splitlines()[2]
 
 
-def test_copilot_chatmode_declares_the_tool_set():
-    assert "tools: ['higor']" in install.copilot_chatmode()
+def test_claude_skill_description_is_a_quoted_yaml_string():
+    # The summary contains ": ", which strict YAML parsers (Copilot CLI) reject unquoted.
+    value = install.claude_skill().splitlines()[2].removeprefix("description: ")
+    assert json.loads(value) == install.SUMMARY
 
 
 def test_server_command_runs_this_checkout():
@@ -32,8 +34,7 @@ def test_server_command_runs_this_checkout():
 
 def test_mcp_config_uses_the_key_the_host_expects():
     assert "mcpServers" in install.mcp_config("mcpServers")
-    assert "servers" in install.mcp_config("servers")
-    assert install.mcp_config("servers")["servers"]["higor"]["type"] == "stdio"
+    assert install.mcp_config("mcpServers")["mcpServers"]["higor"]["type"] == "stdio"
 
 
 def test_install_claude_code_writes_skill_and_config(tmp_path):
@@ -43,13 +44,6 @@ def test_install_claude_code_writes_skill_and_config(tmp_path):
     assert skill.exists() and config.exists()
     assert str(skill) in written
     assert json.loads(config.read_text())["mcpServers"]["higor"]["command"] == "uv"
-
-
-def test_install_copilot_writes_chatmode_and_config(tmp_path):
-    install.install("copilot", tmp_path)
-    assert (tmp_path / ".github" / "chatmodes" / "higor.chatmode.md").exists()
-    doc = json.loads((tmp_path / ".vscode" / "mcp.json").read_text())
-    assert doc["servers"]["higor"]["args"][-1] == "serve"
 
 
 def test_install_agents_md_writes_a_fragment(tmp_path):
@@ -93,7 +87,6 @@ def test_checked_in_copies_are_not_stale():
     base = install.project_root() / "integrations"
     expected = {
         base / "claude-code" / "skills" / "higor" / "SKILL.md": install.claude_skill(),
-        base / "copilot" / "higor.chatmode.md": install.copilot_chatmode(),
         base / "agents-md" / "AGENTS.higor.md": install.agents_md(),
     }
     stale = [str(path) for path, text in expected.items() if path.read_text() != text]
