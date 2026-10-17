@@ -19,6 +19,22 @@ talks to an LLM, which is what makes the same workflow portable.
 
 ![The higor-agent viewer showing a ranked digest of ten papers](docs/screenshot.png)
 
+## Why it is built this way
+
+higor-agent is kept as simple as possible on purpose. It works with the LLM chat you
+already use, through skills, so it is not tied to any particular model, API key or
+subscription. Switch from Claude to Copilot, or to whatever comes next, and your profile,
+venue ratings and reading history come with you.
+
+The agent reaches the engine through skills as well: each tool is a plain shell command
+that the skill teaches it to run. There is no MCP server to register, keep running or
+configure per harness.
+
+The price is that the viewer is decoupled from the chat. You talk to the agent in one
+window and read papers in another, and the two meet only through a file on disk (see
+[Where the digest is saved](#where-the-digest-is-saved)). The upside is that the viewer is
+optional: anything that can read that file can show your digest.
+
 ## What it does
 
 1. **Collect.** One sweep per digest: your topic phrases on Semantic Scholar (exact-phrase,
@@ -119,6 +135,46 @@ Press `d` on any paper for the abstract and the scoring signals behind its rank.
 | `s` | Mark as saved in the reading log |
 | `r` | Reload the snapshot now |
 | `q` | Quit |
+
+## Where the digest is saved
+
+Every `show` writes the current list to one file, overwritten each time:
+
+```
+~/.higor/last_session.json        ($HIGOR_DIR/last_session.json if you set HIGOR_DIR)
+```
+
+It is plain JSON, so you can serve the digest however you like: a static web page, a
+notebook, a script that emails it, a feed reader. The terminal viewer is just one reader of
+this file.
+
+```json
+{
+  "fetched_at": "2026-10-17T08:12:45+00:00",
+  "note": "Week of 12 October",
+  "papers": [
+    {
+      "handle": "#12",
+      "title": "...",
+      "authors": ["..."],
+      "journal": "Physical Review B",
+      "published": "2026-10-14T00:00:00Z",
+      "url": "https://doi.org/...",
+      "abstract": "...",
+      "summary": "The agent's one or two sentences.",
+      "relevance_score": 0.81,
+      "topical_relevance": 0.75,
+      "venue_prestige": 0.7,
+      "citation_count": 3,
+      "cites_author_paper": ""
+    }
+  ]
+}
+```
+
+Papers are sorted by `relevance_score`, the final blended score. Only the latest list is
+kept; copy the file after each digest if you want an archive. What you open and save in the
+viewer goes to `~/.higor/reading_log.jsonl`, one JSON object per line.
 
 ## The tools
 
