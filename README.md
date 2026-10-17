@@ -35,40 +35,81 @@ talks to an LLM, which is what makes the same workflow portable.
 4. **Browse.** `show` writes the ranked list to disk and the viewer redraws. Keyboard
    actions there are the only source of the reading log, which feeds back into later runs.
 
-## Install
+## Getting started
+
+**1. Install and build your profile** (once):
 
 ```bash
-cd higor-agent
+cd ~/Work/higor-agent
 uv sync
-uv run higor-agent profile          # build ~/.higor/profile.toml
+uv run higor-agent profile          # interactive; writes ~/.higor/profile.toml
 ```
 
-Then give your harness the instructions. Each command writes one file and touches nothing
-else; the agent runs the tools from its shell, so there is no server to register:
+**2. Install the skills into the folder you will run your agent from** (`~/my-research`
+here; any folder works):
 
 ```bash
-uv run higor-agent install claude-code --dest ~/my-research   # .claude/skills/higor{,-digest}
-uv run higor-agent install agents-md   --dest ~/my-research   # AGENTS.higor.md fragment
+uv run higor-agent install claude-code --dest ~/my-research
 ```
 
-GitHub Copilot CLI reads `.claude/skills/` too, so use the `claude-code` target for it.
-Copilot only loads a directory's skills once you trust it, so accept the trust prompt the
-first time you run `copilot` there.
+This writes two skills under `~/my-research/.claude/skills/` and touches nothing else:
+`higor` (the tools and how to use them) and `higor-digest` (the weekly digest as a slash
+command). The agent runs the tools from its shell, so there is no server to register.
+Claude Code and GitHub Copilot CLI both read `.claude/skills/`, so the same target serves
+both. Re-run the command whenever you pull a new version.
 
-Open that directory in your harness and type `/higor-digest`, or `/higor-digest 30` for a
-longer window. Plain requests work too ("more like #12", "search for GPU tight binding"). In a second terminal:
+**3. Start your agent there and ask for the digest:**
 
 ```bash
-uv run higor-agent view
+cd ~/my-research
+claude          # or: copilot
+```
+
+```
+/higor-digest           # your profile's lookback window
+/higor-digest 30        # the last 30 days
+```
+
+After that, ask in plain words: "more like #12", "search for GPU tight binding and add the
+good ones", "why is #7 ranked so high?".
+
+- **Copilot CLI** loads a folder's skills only once you trust it: accept the trust prompt
+  the first time you run `copilot` there.
+- **Claude Code** may ask before the first `higor-agent` command. Allow it for the project
+  and it will not ask again.
+
+**4. Watch the list** in a second terminal:
+
+```bash
+uv run --directory ~/Work/higor-agent higor-agent view
 ```
 
 The viewer follows the file, so the list updates as the agent publishes it.
+
+### Other harnesses
+
+For Codex, Cursor or anything else that reads `AGENTS.md`:
+
+```bash
+uv run higor-agent install agents-md --dest ~/my-research   # writes AGENTS.higor.md
+```
+
+Paste its contents into that folder's `AGENTS.md`. There is no slash command there; start
+a digest with the message `higor-agent digest-prompt` prints.
+
+### Coming from the MCP version
+
+Earlier versions ran an MCP server. Delete the `higor` entry from `~/my-research/.mcp.json`
+(or the whole file, if it held nothing else), then re-run step 2 to replace the old skill.
+The state in `~/.higor` (profile, venue ratings, reading log) carries over unchanged.
+
+### The viewer
 
 Press `d` on any paper for the abstract and the scoring signals behind its rank.
 
 ![The abstract pane open on a paper, showing its final, topical and venue scores](docs/screenshot-detail.png)
 
-### Keys
+#### Keys
 
 | Key | Action |
 | --- | --- |
@@ -150,7 +191,7 @@ cd ~/my-research && copilot --allow-all-tools -p "/higor-digest"
 
 ```bash
 uv run pytest -v
-uv run higor-agent install reference   # regenerate integrations/ after editing agent/higor.md
+uv run higor-agent install reference   # regenerate integrations/ after editing agent/*.md
 uv run python scripts/screenshot.py    # regenerate the README images from your own list
 ```
 
