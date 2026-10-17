@@ -7,11 +7,24 @@ Codex, Cursor. What ships here is a set of shell commands, a ranking core, one i
 file and a browser.
 
 ```
-your harness  ──shell──▶  higor-agent <command>  ──HTTP──▶  Semantic Scholar · arXiv · Crossref
-     │                            │
-   the agent              writes last_session.json
-  (agent/higor.md)                │
-                           higor-agent view   ← you read papers here
+┌─ your LLM chat ───────────────────────┐
+│  Claude Code · Copilot CLI · ...      │   the only place a model runs
+│                                       │
+│  /higor-digest ──▶ agent ◀── skills   │
+└─────────────────────┬─────────────────┘
+                      │ shell commands, plain-text replies
+                      ▼
+          ┌─ higor-agent ─────────┐   HTTP   Semantic Scholar
+          │ sweep · rank · blend  │ ───────▶ arXiv
+          └───────────┬───────────┘          Crossref
+                      │ reads and writes
+                      ▼
+          ┌─ ~/.higor ───────────────────────────────┐
+          │ profile.toml          journal_ranks.json │
+          │ session_cache.json    last_session.json ─┼──▶ higor-agent view ─┐
+          │ reading_log.jsonl ◀──────────────────────┼──────────────────────┘
+          └──────────────────────────────────────────┘    or any reader of your own:
+                                                          a web page, a script, email
 ```
 
 The package contains **no model and no provider SDK**. Your harness is the only thing that
