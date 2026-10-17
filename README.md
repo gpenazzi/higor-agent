@@ -126,12 +126,6 @@ uv run higor-agent install agents-md --dest ~/my-research   # writes AGENTS.higo
 Paste its contents into that folder's `AGENTS.md`. There is no slash command there; start
 a digest with the message `higor-agent digest-prompt` prints.
 
-### Coming from the MCP version
-
-Earlier versions ran an MCP server. Delete the `higor` entry from `~/my-research/.mcp.json`
-(or the whole file, if it held nothing else), then re-run step 2 to replace the old skill.
-The state in `~/.higor` (profile, venue ratings, reading log) carries over unchanged.
-
 ### The viewer
 
 Press `d` on any paper for the abstract and the scoring signals behind its rank.
