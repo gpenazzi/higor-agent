@@ -144,7 +144,7 @@ Every `show` writes the current list to one file, overwritten each time:
 ~/.higor/last_session.json        ($HIGOR_DIR/last_session.json if you set HIGOR_DIR)
 ```
 
-It is plain JSON, so you can serve the digest however you like: a static web page, a
+It is plain JSON (excerpt below; each paper also carries `id`, `doi` and `arxiv_id`), so you can serve the digest however you like: a static web page, a
 notebook, a script that emails it, a feed reader. The terminal viewer is just one reader of
 this file.
 
