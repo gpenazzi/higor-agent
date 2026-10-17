@@ -47,7 +47,7 @@ Then give your harness the instructions. Each command writes one file and touche
 else; the agent runs the tools from its shell, so there is no server to register:
 
 ```bash
-uv run higor-agent install claude-code --dest ~/my-research   # .claude/skills/higor/SKILL.md
+uv run higor-agent install claude-code --dest ~/my-research   # .claude/skills/higor{,-digest}
 uv run higor-agent install agents-md   --dest ~/my-research   # AGENTS.higor.md fragment
 ```
 
@@ -55,7 +55,8 @@ GitHub Copilot CLI reads `.claude/skills/` too, so use the `claude-code` target 
 Copilot only loads a directory's skills once you trust it, so accept the trust prompt the
 first time you run `copilot` there.
 
-Open that directory in your harness and ask for your digest. In a second terminal:
+Open that directory in your harness and type `/higor-digest`, or `/higor-digest 30` for a
+longer window. Plain requests work too ("more like #12", "search for GPU tight binding"). In a second terminal:
 
 ```bash
 uv run higor-agent view
@@ -133,16 +134,16 @@ Everything lives in `~/.higor` by default. Set `HIGOR_DIR` to use another tree.
 ## Scheduling a weekly digest
 
 The harness supplies the loop, so a digest is a headless run of your harness against these
-tools. `higor-agent digest-prompt` prints the opening message. With Claude Code:
+tools, started with the same slash command. With Claude Code:
 
 ```bash
-cd ~/my-research && claude -p "$(uv run --directory ~/Work/higor-agent higor-agent digest-prompt)"
+cd ~/my-research && claude -p "/higor-digest"
 ```
 
 With Copilot CLI (`--allow-all-tools` is required in non-interactive mode):
 
 ```bash
-cd ~/my-research && copilot --allow-all-tools -p "$(uv run --directory ~/Work/higor-agent higor-agent digest-prompt)"
+cd ~/my-research && copilot --allow-all-tools -p "/higor-digest"
 ```
 
 ## Development

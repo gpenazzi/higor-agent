@@ -43,11 +43,22 @@ def test_every_command_in_the_instructions_is_made_runnable():
     assert "`higor-agent " not in text
 
 
-def test_install_claude_code_writes_only_the_skill(tmp_path):
+def test_install_claude_code_writes_the_skill_and_the_digest_command(tmp_path):
     written = install.install("claude-code", tmp_path)
-    skill = tmp_path / ".claude" / "skills" / "higor" / "SKILL.md"
-    assert written == [str(skill)]
-    assert install.command() in skill.read_text()
+    skills = tmp_path / ".claude" / "skills"
+    assert written == [
+        str(skills / "higor" / "SKILL.md"),
+        str(skills / "higor-digest" / "SKILL.md"),
+    ]
+    assert install.command() in (skills / "higor" / "SKILL.md").read_text()
+
+
+def test_digest_skill_is_for_the_researcher_to_invoke():
+    lines = install.digest_skill().splitlines()
+    assert lines[1] == "name: higor-digest"
+    assert json.loads(lines[2].removeprefix("description: ")) == install.DIGEST_SUMMARY
+    assert "disable-model-invocation: true" in lines
+    assert f"`{install.command()} context`" in install.digest_skill()
 
 
 def test_install_agents_md_writes_a_fragment(tmp_path):
@@ -67,6 +78,7 @@ def test_checked_in_copies_are_not_stale():
     root = install.REFERENCE_ROOT
     expected = {
         base / "claude-code" / "skills" / "higor" / "SKILL.md": install.claude_skill(root),
+        base / "claude-code" / "skills" / "higor-digest" / "SKILL.md": install.digest_skill(root),
         base / "agents-md" / "AGENTS.higor.md": install.agents_md(root),
     }
     stale = [str(path) for path, text in expected.items() if path.read_text() != text]

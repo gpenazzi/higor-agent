@@ -16,6 +16,11 @@ from pathlib import Path
 
 from higor_agent import paths
 
+DIGEST_SUMMARY = (
+    "Build the weekly literature digest with the higor commands. Optionally pass a number "
+    "of days to look back."
+)
+
 SUMMARY = (
     "Screen new literature for one researcher: sweep Semantic Scholar and arXiv, read "
     "abstracts, score topical relevance and publish a ranked list to their terminal browser. "
@@ -41,9 +46,9 @@ def command(root: Path | None = None) -> str:
     return f"uv run --quiet --directory {shlex.quote(str(root))} higor-agent"
 
 
-def instructions(root: Path | None = None) -> str:
-    """The instruction file with every ``higor-agent`` command made runnable."""
-    text = (paths.agent_dir() / "higor.md").read_text(encoding="utf-8").strip()
+def instructions(root: Path | None = None, name: str = "higor.md") -> str:
+    """An instruction file from ``agent/`` with every ``higor-agent`` command made runnable."""
+    text = (paths.agent_dir() / name).read_text(encoding="utf-8").strip()
     full = command(root)
     return _COMMAND.sub(lambda m: f"{m.group(1)}{full} ", text)
 
@@ -59,6 +64,23 @@ def claude_skill(root: Path | None = None) -> str:
         f"allowed-tools: {json.dumps(f'Bash({command(root)}:*)')}\n"
         "---\n\n"
         f"{instructions(root)}\n"
+    )
+
+
+def digest_skill(root: Path | None = None) -> str:
+    """``/higor-digest`` in Claude Code and Copilot CLI: the digest as a slash command.
+
+    Only the researcher starts a digest, so the model is told not to invoke it on its own.
+    """
+    return (
+        "---\n"
+        "name: higor-digest\n"
+        f"description: {json.dumps(DIGEST_SUMMARY)}\n"
+        'argument-hint: "[days]"\n'
+        "disable-model-invocation: true\n"
+        f"allowed-tools: {json.dumps(f'Bash({command(root)}:*)')}\n"
+        "---\n\n"
+        f"{instructions(root, 'digest.md')}\n"
     )
 
 
@@ -82,7 +104,9 @@ def install(target: str, dest: Path, root: Path | None = None) -> list[str]:
     """Write the wrappers for *target* under *dest*. Returns the paths touched."""
     changed: list[str] = []
     if target == "claude-code":
-        _write(dest / ".claude" / "skills" / "higor" / "SKILL.md", claude_skill(root), changed)
+        skills = dest / ".claude" / "skills"
+        _write(skills / "higor" / "SKILL.md", claude_skill(root), changed)
+        _write(skills / "higor-digest" / "SKILL.md", digest_skill(root), changed)
     elif target == "agents-md":
         _write(dest / "AGENTS.higor.md", agents_md(root), changed)
     else:
@@ -97,6 +121,11 @@ def refresh_reference_copies() -> list[str]:
     _write(
         base / "claude-code" / "skills" / "higor" / "SKILL.md",
         claude_skill(REFERENCE_ROOT),
+        changed,
+    )
+    _write(
+        base / "claude-code" / "skills" / "higor-digest" / "SKILL.md",
+        digest_skill(REFERENCE_ROOT),
         changed,
     )
     _write(base / "agents-md" / "AGENTS.higor.md", agents_md(REFERENCE_ROOT), changed)

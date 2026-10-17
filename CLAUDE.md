@@ -14,6 +14,7 @@ through a tool.
 
 ```
 agent/higor.md    THE agent: instructions, rubric, digest procedure. Single source of truth.
+agent/digest.md   the /higor-digest slash command; defers to higor.md for everything else
 higor_agent/
   tools.py        the nine tools as plain async functions over a Session, returning text
   session.py      paper cache, handle table, profile-driven sweep, back-fill, apply_show
