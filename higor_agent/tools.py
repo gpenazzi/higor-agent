@@ -1,8 +1,8 @@
 """The tools, as plain async functions over a :class:`Session`.
 
-Nothing here imports MCP: ``server.py`` wraps these, and the tests call them directly.
-Every function returns plain text meant to be read by a model, and raises ``ValueError``
-on a call the host got wrong.
+Nothing here parses arguments: ``cli.py`` wraps these as commands, and the tests call them
+directly. Every function returns plain text meant to be read by a model, and raises
+``ValueError`` on a call the agent got wrong.
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ class Judgement(BaseModel):
 
 
 class Toolkit:
-    """The tool surface. One instance per server process."""
+    """The tool surface over one session."""
 
     def __init__(self, session: Session | None = None) -> None:
         self.session = session if session is not None else Session()
@@ -59,7 +59,7 @@ class Toolkit:
             f"{total} candidates from the last {days} days ({note}). Rows {start + 1}-{end}."
         )
         if end < total:
-            header += f" Call collect_candidates(page={page + 1}) for the rest."
+            header += f" Run candidates --page {page + 1} for the rest."
         return header + "\n" + s.table(s.candidates[start:end])
 
     async def search_papers(
@@ -151,7 +151,7 @@ class Toolkit:
             return "No unrated venues. Every journal involved already has a cached rating."
         return (
             f"{len(missing)} venues have no prestige rating yet. Rate each from 0 to 1 for "
-            "standing in this researcher's field and post them with set_venue_ratings:\n"
+            "standing in this researcher's field and cache them with rate-venues:\n"
             + "\n".join(missing)
         )
 
@@ -194,7 +194,7 @@ class Toolkit:
             text += (
                 f"\nNote: {len(missing_venues)} venues were treated as neutral because they have "
                 "no cached rating: " + ", ".join(missing_venues[:10])
-                + ". Rate them with set_venue_ratings and call show again to refine the ranking."
+                + ". Rate them with rate-venues and run show again to refine the ranking."
             )
         return text
 

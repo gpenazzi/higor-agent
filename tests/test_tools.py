@@ -35,7 +35,7 @@ class TestCollect:
         monkeypatch.setattr(Session, "sweep", sweep)
         first = await kit.collect_candidates(days=7)
         assert "Rows 1-200" in first
-        assert "page=2" in first
+        assert "--page 2" in first
         second = await kit.collect_candidates(page=2)
         assert "Rows 201-250" in second
         assert "cached sweep" in second

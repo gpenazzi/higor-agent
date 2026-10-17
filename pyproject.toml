@@ -5,11 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "higor-agent"
 version = "0.1.0"
-description = "Literature-screening tools for any agent harness: an MCP server, a ranking core and a terminal viewer"
+description = "Literature-screening tools for any agent harness: shell commands, a ranking core and a terminal viewer"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 dependencies = [
-    "mcp>=1.2",
     "httpx>=0.27",
     "pydantic>=2.0",
     "tomli-w>=1.0",

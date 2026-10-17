@@ -37,6 +37,14 @@ def last_session_path() -> Path:
     return HIGOR_DIR / "last_session.json"
 
 
+def session_cache_path() -> Path:
+    return HIGOR_DIR / "session_cache.json"
+
+
+def lock_path() -> Path:
+    return HIGOR_DIR / "session.lock"
+
+
 def log_path() -> Path:
     return HIGOR_DIR / "higor-agent.log"
 
@@ -44,8 +52,8 @@ def log_path() -> Path:
 def agent_dir() -> Path:
     """The ``agent/`` directory of this checkout, holding the instruction file.
 
-    Resolved from this module rather than packaged as data: the server is always run out
-    of a checkout (``uv run --directory <repo> higor-agent serve``), and keeping the
+    Resolved from this module rather than packaged as data: the commands are always run out
+    of a checkout (``uv run --directory <repo> higor-agent ...``), and keeping the
     instructions as an editable top-level file beats burying them in the package.
     """
     path = Path(__file__).resolve().parent.parent / "agent"

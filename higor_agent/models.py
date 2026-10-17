@@ -1,4 +1,4 @@
-"""Shared Pydantic models — the single contract across every module and the MCP wire.
+"""Shared Pydantic models — the single contract across every module and the on-disk files.
 
 Deliberately free of any LLM concept: nothing here knows which harness is driving.
 """

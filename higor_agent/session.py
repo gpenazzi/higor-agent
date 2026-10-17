@@ -2,7 +2,8 @@
 
 This is the half of the original ``higor/agent.py`` that is not an LLM session. It holds
 no model, no client and no prompt: the host harness owns the conversation, this owns the
-papers. One ``Session`` lives for as long as the MCP server process the host spawned.
+papers. Every command is its own process, so ``workspace.py`` saves the session between
+calls with ``to_cache`` and restores it with ``from_cache``.
 """
 from __future__ import annotations
 
@@ -42,6 +43,31 @@ class Session:
             shown = restored[0] if restored else []
         self.shown = [self.register(p) for p in shown]
 
+    # ── Persistence between commands ──────────────────────────────────────────
+
+    def to_cache(self) -> dict:
+        return {
+            "papers": [p.model_dump(mode="json") for p in self.papers.values()],
+            "candidates": [p.id for p in self.candidates],
+            "shown": [p.id for p in self.shown],
+        }
+
+    @classmethod
+    def from_cache(cls, data: dict, profile: UserProfile | None = None) -> Session:
+        """Rebuild a session saved by ``to_cache``, handles included."""
+        s = cls(profile=profile, shown=[])
+        for raw in data.get("papers", []):
+            p = Paper.model_validate(raw)
+            if not p.handle:
+                p = s.register(p)
+                continue
+            s.papers[p.id] = p
+            s._handles[p.handle] = p.id
+            s._ids[p.id] = p.handle
+        s.candidates = [s.papers[i] for i in data.get("candidates", []) if i in s.papers]
+        s.shown = [s.papers[i] for i in data.get("shown", []) if i in s.papers]
+        return s
+
     # ── Paper cache and handles ───────────────────────────────────────────────
 
     def register(self, paper: Paper) -> Paper:
@@ -57,12 +83,15 @@ class Session:
                 if v not in ("", 0, 0.0, None, []) or k == "id"
             })
         if paper.id not in self._ids:
-            handle = f"#{len(self._handles) + 1}"
+            handle = f"#{self._next_handle()}"
             self._handles[handle] = paper.id
             self._ids[paper.id] = handle
         paper = paper.model_copy(update={"handle": self._ids[paper.id]})
         self.papers[paper.id] = paper
         return paper
+
+    def _next_handle(self) -> int:
+        return max((int(h[1:]) for h in self._handles), default=0) + 1
 
     def handle(self, paper: Paper) -> str:
         return self._ids.get(paper.id, "")

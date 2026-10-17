@@ -3,15 +3,15 @@
 Literature screening for **any** agent harness.
 
 The agent loop lives in whatever harness you already use: Claude Code, Copilot CLI,
-Codex, Cursor. What ships here is a tool server, a ranking core, one instruction file and a
-browser.
+Codex, Cursor. What ships here is a set of shell commands, a ranking core, one instruction
+file and a browser.
 
 ```
-your harness  ──MCP(stdio)──▶  higor-agent serve  ──HTTP──▶  Semantic Scholar · arXiv · Crossref
-     │                                 │
-   the agent                     writes last_session.json
-  (agent/higor.md)                     │
-                                higor-agent view   ← you read papers here
+your harness  ──shell──▶  higor-agent <command>  ──HTTP──▶  Semantic Scholar · arXiv · Crossref
+     │                            │
+   the agent              writes last_session.json
+  (agent/higor.md)                │
+                           higor-agent view   ← you read papers here
 ```
 
 The package contains **no model and no provider SDK**. Your harness is the only thing that
@@ -29,7 +29,7 @@ talks to an LLM, which is what makes the same workflow portable.
 2. **Read.** The agent reads every title, fetches abstracts for the promising ones (missing
    abstracts are back-filled from Semantic Scholar's TL;DR, then Crossref) and scores
    topical relevance.
-3. **Blend.** The server multiplies that score by a venue term plus a citation bonus. The
+3. **Blend.** `show` multiplies that score by a venue term plus a citation bonus. The
    agent rates each new journal once and the rating is cached in `journal_ranks.json`;
    preprints are neutral. `impact_weight` in the profile controls how much this moves things.
 4. **Browse.** `show` writes the ranked list to disk and the viewer redraws. Keyboard
@@ -43,17 +43,17 @@ uv sync
 uv run higor-agent profile          # build ~/.higor/profile.toml
 ```
 
-Then wire up your harness. Each command writes the instruction file and registers the MCP
-server, and nothing else in your config is touched:
+Then give your harness the instructions. Each command writes one file and touches nothing
+else; the agent runs the tools from its shell, so there is no server to register:
 
 ```bash
-uv run higor-agent install claude-code --dest ~/my-research   # .claude/skills + .mcp.json
-uv run higor-agent install agents-md   --dest ~/my-research   # AGENTS fragment + .mcp.json
+uv run higor-agent install claude-code --dest ~/my-research   # .claude/skills/higor/SKILL.md
+uv run higor-agent install agents-md   --dest ~/my-research   # AGENTS.higor.md fragment
 ```
 
-GitHub Copilot CLI reads the same files as Claude Code (`.mcp.json` and `.claude/skills/`),
-so use the `claude-code` target for it. Copilot only loads a directory's MCP servers and
-skills once you trust it, so accept the trust prompt the first time you run `copilot` there.
+GitHub Copilot CLI reads `.claude/skills/` too, so use the `claude-code` target for it.
+Copilot only loads a directory's skills once you trust it, so accept the trust prompt the
+first time you run `copilot` there.
 
 Open that directory in your harness and ask for your digest. In a second terminal:
 
@@ -80,25 +80,30 @@ Press `d` on any paper for the abstract and the scoring signals behind its rank.
 
 ## The tools
 
-| Tool | What it does |
-| --- | --- |
-| `get_context` | Profile, reading history, today, and what is currently shown. Call first. |
-| `collect_candidates` | Sweep every configured source, paged |
-| `search_papers` | One phrase on Semantic Scholar and arXiv, optionally venue-restricted |
-| `related_papers` | Recommendations for, and citations of, given handles |
-| `get_papers` | Full records and abstracts for up to 40 handles |
-| `venues_needing_rating` | Journals with no cached prestige rating |
-| `set_venue_ratings` | Cache the agent's venue judgements |
-| `show` | Blend, publish to the browser, write the snapshot |
-| `update_profile` | Edit the saved profile |
+Each tool is a `higor-agent` subcommand that prints plain text for the agent to read.
 
-Every paper the agent touches gets a handle like `#12`, stable for the life of the server
-process. Tools accept handles or raw ids; the browser and the snapshot show them.
+| Command | What it does |
+| --- | --- |
+| `context` | Profile, reading history, today, and what is currently shown. Run first. |
+| `candidates` | Sweep every configured source, paged with `--page` |
+| `search` | One phrase on Semantic Scholar and arXiv, optionally venue-restricted |
+| `related` | Recommendations for, and citations of, given handles |
+| `papers` | Full records and abstracts for up to 40 handles |
+| `venues` | Journals with no cached prestige rating |
+| `rate-venues` | Cache the agent's venue judgements (JSON on stdin) |
+| `show` | Blend, publish to the browser, write the snapshot (JSON on stdin) |
+| `update-profile` | Edit the saved profile |
+
+Every paper the agent touches gets a handle like `#12`. Commands accept handles or raw ids;
+the browser and the snapshot show them. Handles live in `session_cache.json` between
+commands and start over after twelve idle hours, so each day's conversation begins at `#1`.
+A lock makes concurrent commands wait their turn, which also keeps them inside the
+Semantic Scholar rate limit.
 
 ## Who judges what
 
 Every judgement comes from the host agent. Topical relevance arrives through `show`, venue
-standing through `venues_needing_rating` and `set_venue_ratings`. That is why the package
+standing through `venues` and `rate-venues`. That is why the package
 needs no model of its own: it validates, caches and blends, and never decides.
 
 A venue is rated once and the rating is reused by every later session, so the cache is worth
@@ -107,7 +112,7 @@ keeping an eye on. It is plain JSON, sorted by name, and you can correct any ent
 ## Requirements
 
 - Python 3.11+ and [uv](https://docs.astral.sh/uv/)
-- A harness that speaks MCP
+- A harness that can run shell commands
 - Optional: a free [Semantic Scholar API key](https://www.semanticscholar.org/product/api)
   in `S2_API_KEY` lifts the unauthenticated rate limit
 
@@ -121,6 +126,7 @@ Everything lives in `~/.higor` by default. Set `HIGOR_DIR` to use another tree.
   journal_ranks.json   cached venue prestige, hand-editable
   reading_log.jsonl    append-only interaction log
   last_session.json    the published list; the viewer follows this
+  session_cache.json   papers and handles between commands
   higor-agent.log      warnings and errors
 ```
 
@@ -131,6 +137,12 @@ tools. `higor-agent digest-prompt` prints the opening message. With Claude Code:
 
 ```bash
 cd ~/my-research && claude -p "$(uv run --directory ~/Work/higor-agent higor-agent digest-prompt)"
+```
+
+With Copilot CLI (`--allow-all-tools` is required in non-interactive mode):
+
+```bash
+cd ~/my-research && copilot --allow-all-tools -p "$(uv run --directory ~/Work/higor-agent higor-agent digest-prompt)"
 ```
 
 ## Development
