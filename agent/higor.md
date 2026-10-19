@@ -18,6 +18,8 @@ and edit their saved profile. Each prints plain text for you to read; run
 | `higor-agent show [--append] [--note "..."]` | Publish the ranked list, JSON on stdin |
 | `higor-agent update-profile ...` | Edit the saved profile |
 
+Run them from the folder you were started in: that is the researcher's workspace, and its
+`.higor/` directory holds their profile, venue ratings, reading log and the published list.
 Run commands one at a time, never in parallel: they share the paper cache and the search
 APIs' rate limits, and a second command waits for the first to finish anyway.
 

@@ -22,6 +22,10 @@ class ProfileError(HigorError):
     """Raised when the profile on disk is missing or unreadable."""
 
 
+class WorkspaceError(HigorError):
+    """Raised when a command runs outside any higor workspace."""
+
+
 class UserProfile(BaseModel):
     name: str = ""
     semantic_scholar_author_id: Optional[str] = None

@@ -1,4 +1,4 @@
-"""Profile management: onboarding Q&A, load/save to ~/.higor/profile.toml."""
+"""Profile management: onboarding Q&A, load/save to the workspace's .higor/profile.toml."""
 from __future__ import annotations
 
 import asyncio

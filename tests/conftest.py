@@ -1,4 +1,4 @@
-"""Shared fixtures. Every test runs against a temporary ~/.higor and no network throttling."""
+"""Shared fixtures. Every test runs against a temporary state directory and no throttling."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -11,7 +11,7 @@ from higor_agent.models import Paper, UserProfile
 
 @pytest.fixture(autouse=True)
 def isolated_higor_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Redirect all on-disk state to a temp dir so tests never touch the real ~/.higor."""
+    """Redirect all on-disk state to a temp dir so tests never touch a real workspace."""
     higor_dir = tmp_path / ".higor"
     monkeypatch.setattr("higor_agent.paths.HIGOR_DIR", higor_dir)
     monkeypatch.setattr("higor_agent.search.S2_MIN_INTERVAL", 0.0)

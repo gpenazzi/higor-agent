@@ -82,7 +82,7 @@ def test_state_lives_under_the_redirected_directory(isolated_higor_dir):
 
 
 def test_logging_setup_creates_the_state_directory(isolated_higor_dir):
-    """A first run has no ~/.higor. basicConfig opens the file eagerly, so if the
+    """A fresh workspace has no .higor yet. basicConfig opens the file eagerly, so if the
     directory is missing the first command dies before it can report why."""
     assert not isolated_higor_dir.exists()
     setup_logging()

@@ -19,7 +19,7 @@ file and a browser.
           └───────────┬───────────┘          Crossref
                       │ reads and writes
                       ▼
-          ┌─ ~/.higor ───────────────────────────────┐
+          ┌─ my-research/.higor ─────────────────────┐
           │ profile.toml          journal_ranks.json │
           │ session_cache.json    last_session.json ─┼──▶ higor-agent view ─┐
           │ reading_log.jsonl ◀──────────────────────┼──────────────────────┘
@@ -66,31 +66,48 @@ optional: anything that can read that file can show your digest.
 
 ## Getting started
 
-**1. Install and build your profile** (once):
+Everything happens in one folder of yours, the **workspace** (`~/my-research` below; any
+folder works). Your profile, venue ratings, reading log and digest all live in its
+`.higor/` directory, so nothing is written anywhere else, and separate folders can follow
+separate research interests.
+
+**1. Install the tool** (once):
 
 ```bash
 cd ~/Work/higor-agent
 uv sync
-uv run higor-agent profile          # interactive; writes ~/.higor/profile.toml
 ```
 
-**2. Install the skills into the folder you will run your agent from** (`~/my-research`
-here; any folder works):
+**2. Turn your folder into a workspace:**
 
 ```bash
 uv run higor-agent install claude-code --dest ~/my-research
 ```
 
-This writes two skills under `~/my-research/.claude/skills/` and touches nothing else:
+This creates `~/my-research/.higor/` and two skills under `~/my-research/.claude/skills/`:
 `higor` (the tools and how to use them) and `higor-digest` (the weekly digest as a slash
 command). The agent runs the tools from its shell, so there is no server to register.
 Claude Code and GitHub Copilot CLI both read `.claude/skills/`, so the same target serves
 both. Re-run the command whenever you pull a new version.
 
-**3. Start your agent there and ask for the digest:**
+From here on, run every command from the workspace. They use
+`uv run --project ~/Work/higor-agent`, which runs the tool without leaving the folder you
+are in. An alias saves typing:
+
+```bash
+alias higor='uv run --quiet --project ~/Work/higor-agent higor-agent'
+```
+
+**3. Build your profile** (once per workspace):
 
 ```bash
 cd ~/my-research
+higor profile            # interactive; writes .higor/profile.toml
+```
+
+**4. Start your agent there and ask for the digest:**
+
+```bash
 claude          # or: copilot
 ```
 
@@ -107,10 +124,11 @@ good ones", "why is #7 ranked so high?".
 - **Claude Code** may ask before the first `higor-agent` command. Allow it for the project
   and it will not ask again.
 
-**4. Watch the list** in a second terminal:
+**5. Watch the list** in a second terminal, from the same folder:
 
 ```bash
-uv run --directory ~/Work/higor-agent higor-agent view
+cd ~/my-research
+higor view
 ```
 
 The viewer follows the file, so the list updates as the agent publishes it.
@@ -120,7 +138,7 @@ The viewer follows the file, so the list updates as the agent publishes it.
 For Codex, Cursor or anything else that reads `AGENTS.md`:
 
 ```bash
-uv run higor-agent install agents-md --dest ~/my-research   # writes AGENTS.higor.md
+uv run higor-agent install agents-md --dest ~/my-research   # .higor/ and AGENTS.higor.md
 ```
 
 Paste its contents into that folder's `AGENTS.md`. There is no slash command there; start
@@ -145,15 +163,15 @@ Press `d` on any paper for the abstract and the scoring signals behind its rank.
 
 ## Where the digest is saved
 
-Every `show` writes the current list to one file, overwritten each time:
+Every `show` writes the current list to one file in the workspace, overwritten each time:
 
 ```
-~/.higor/last_session.json        ($HIGOR_DIR/last_session.json if you set HIGOR_DIR)
+~/my-research/.higor/last_session.json
 ```
 
-It is plain JSON (excerpt below; each paper also carries `id`, `doi` and `arxiv_id`), so you can serve the digest however you like: a static web page, a
+It is plain JSON, so you can serve the digest however you like: a static web page, a
 notebook, a script that emails it, a feed reader. The terminal viewer is just one reader of
-this file.
+this file. An excerpt (each paper also carries `id`, `doi` and `arxiv_id`):
 
 ```json
 {
@@ -181,7 +199,7 @@ this file.
 
 Papers are sorted by `relevance_score`, the final blended score. Only the latest list is
 kept; copy the file after each digest if you want an archive. What you open and save in the
-viewer goes to `~/.higor/reading_log.jsonl`, one JSON object per line.
+viewer goes to `.higor/reading_log.jsonl`, one JSON object per line.
 
 ## The tools
 
@@ -223,15 +241,19 @@ keeping an eye on. It is plain JSON, sorted by name, and you can correct any ent
 
 ## State
 
-Everything lives in `~/.higor` by default. Set `HIGOR_DIR` to use another tree.
+Everything lives in the workspace's `.higor/`. Commands find it the way git finds `.git`:
+in the current folder or the nearest parent, so they also work from a subfolder. Outside a
+workspace they stop with an error rather than write somewhere else. Set `HIGOR_DIR` to
+point at a state directory directly.
 
 ```
-~/.higor/
+my-research/.higor/
   profile.toml         your profile, including [sources] and impact_weight
   journal_ranks.json   cached venue prestige, hand-editable
   reading_log.jsonl    append-only interaction log
   last_session.json    the published list; the viewer follows this
   session_cache.json   papers and handles between commands
+  session.lock         keeps two commands from running at once
   higor-agent.log      warnings and errors
 ```
 

@@ -30,14 +30,3 @@ def test_last_session_roundtrip():
     assert loaded[0].relevance_score == 0.9
     assert fetched.tzinfo is not None
     assert json.loads(paths.last_session_path().read_text())["note"] == "week 36"
-
-
-def test_last_session_falls_back_to_legacy_cache_location():
-    legacy = paths.HIGOR_DIR / "cache" / "last_session.json"
-    legacy.parent.mkdir(parents=True)
-    legacy.write_text(json.dumps({
-        "fetched_at": datetime(2026, 7, 18, tzinfo=timezone.utc).isoformat(),
-        "papers": [make_paper(7).model_dump(mode="json")],
-    }))
-    loaded, fetched = store.load_last_session()
-    assert loaded[0].title.startswith("Paper 7") and fetched.year == 2026

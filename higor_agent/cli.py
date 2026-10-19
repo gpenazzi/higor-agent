@@ -26,17 +26,17 @@ errors = Console(stderr=True)
 
 
 def setup_logging() -> None:
-    """Log warnings to the state directory, creating it if this is a first run.
+    """Log warnings to the workspace's state directory, or to stderr outside one.
 
     ``higor_dir()`` has to come first: ``logging.basicConfig`` opens the file eagerly and
     a missing parent directory would kill the first command, before anything can report why.
     """
+    fmt = "%(levelname)s %(name)s: %(message)s"
+    if paths.find_state_dir() is None:
+        logging.basicConfig(level=logging.WARNING, format=fmt)
+        return
     paths.higor_dir()
-    logging.basicConfig(
-        level=logging.WARNING,
-        format="%(levelname)s %(name)s: %(message)s",
-        filename=str(paths.log_path()),
-    )
+    logging.basicConfig(level=logging.WARNING, format=fmt, filename=str(paths.log_path()))
 
 
 # ── Tool commands ─────────────────────────────────────────────────────────────
@@ -206,6 +206,9 @@ def cmd_profile(args: argparse.Namespace) -> int:
             return 1
         console.print(describe_profile(load_profile()))
         return 0
+    if paths.find_state_dir() is None:
+        console.print(f"Creating a higor workspace in {Path.cwd()}", highlight=False)
+        paths.init_workspace(Path.cwd())
     existing = load_profile() if paths.profile_path().exists() else None
     run_onboarding(existing=existing)
     return 0
@@ -221,13 +224,16 @@ def cmd_install(args: argparse.Namespace) -> int:
         return 0
     for path in install(args.target, dest):
         console.print(f"  wrote {path}", soft_wrap=True, highlight=False)
+    run = command(project_root())
     console.print("\nThe agent runs the tools as:", style="bold")
-    console.print(f"  {command(project_root())} <command>", soft_wrap=True, highlight=False)
+    console.print(f"  {run} <command>", soft_wrap=True, highlight=False)
+    console.print("\nNext, from that folder:", style="bold")
+    console.print(f"  cd {dest}", soft_wrap=True, highlight=False)
+    if not (dest / paths.WORKSPACE_DIR / "profile.toml").exists():
+        console.print(f"  {run} profile      # once", soft_wrap=True, highlight=False)
     if args.target == "claude-code":
-        console.print(
-            "Start Claude Code or Copilot CLI in that directory and ask for your digest."
-        )
-    console.print("Run [bold]higor-agent view[/bold] in a second terminal to watch the list.")
+        console.print("  claude  (or copilot), then type /higor-digest", highlight=False)
+    console.print(f"  {run} view         # in a second terminal", soft_wrap=True, highlight=False)
     return 0
 
 
@@ -287,7 +293,7 @@ def main() -> None:
     try:
         sys.exit(args.func(args))
     except (HigorError, ValueError) as exc:
-        errors.print(f"Error: {exc}", markup=False, highlight=False)
+        errors.print(f"Error: {exc}", markup=False, highlight=False, soft_wrap=True)
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(130)

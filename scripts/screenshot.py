@@ -134,7 +134,7 @@ def rasterise(svg_path: Path, width: int = 1600) -> Path | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--state", help="state directory to read (default: $HIGOR_DIR or ~/.higor)")
+    parser.add_argument("--state", help="state directory to read (default: $HIGOR_DIR or the workspace here)")
     parser.add_argument("--out", default="docs", help="where to write the SVGs")
     args = parser.parse_args()
     if args.state:

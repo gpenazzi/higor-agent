@@ -5,7 +5,8 @@ same text under a different filename with different front matter, so generate th
 than maintaining drifting copies. Regenerate after editing the instructions.
 
 The instructions write the tools as ``higor-agent <command>``. Rendering swaps that for the
-full ``uv run`` invocation of this checkout, so the agent can run them from any directory.
+full ``uv run --project`` invocation of this checkout, which runs the checkout's code
+without leaving the agent's working directory, so the commands find its workspace.
 """
 from __future__ import annotations
 
@@ -41,9 +42,9 @@ def project_root() -> Path:
 
 
 def command(root: Path | None = None) -> str:
-    """The shell command that runs ``higor-agent`` from this checkout, from anywhere."""
+    """The shell command that runs ``higor-agent`` from this checkout, in the current folder."""
     root = root or project_root()
-    return f"uv run --quiet --directory {shlex.quote(str(root))} higor-agent"
+    return f"uv run --quiet --project {shlex.quote(str(root))} higor-agent"
 
 
 def instructions(root: Path | None = None, name: str = "higor.md") -> str:
@@ -101,8 +102,10 @@ def _write(path: Path, text: str, changed: list[str]) -> None:
 
 
 def install(target: str, dest: Path, root: Path | None = None) -> list[str]:
-    """Write the wrappers for *target* under *dest*. Returns the paths touched."""
+    """Make *dest* a workspace and write the wrappers for *target*. Returns the paths touched."""
     changed: list[str] = []
+    if target in ("claude-code", "agents-md"):
+        paths.init_workspace(dest)
     if target == "claude-code":
         skills = dest / ".claude" / "skills"
         _write(skills / "higor" / "SKILL.md", claude_skill(root), changed)

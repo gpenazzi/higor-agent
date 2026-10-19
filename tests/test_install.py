@@ -28,7 +28,7 @@ def test_claude_skill_front_matter_values_are_quoted_yaml_strings():
 
 def test_command_runs_this_checkout_from_anywhere():
     cmd = install.command(Path("/some/where"))
-    assert cmd == "uv run --quiet --directory /some/where higor-agent"
+    assert cmd == "uv run --quiet --project /some/where higor-agent"
 
 
 def test_command_quotes_a_root_with_spaces():
@@ -37,7 +37,7 @@ def test_command_quotes_a_root_with_spaces():
 
 def test_every_command_in_the_instructions_is_made_runnable():
     text = install.instructions(Path("/r"))
-    full = "uv run --quiet --directory /r higor-agent"
+    full = "uv run --quiet --project /r higor-agent"
     assert f"`{full} context`" in text
     assert f"   {full} show --note" in text  # inside an indented code block
     assert "`higor-agent " not in text
@@ -51,6 +51,7 @@ def test_install_claude_code_writes_the_skill_and_the_digest_command(tmp_path):
         str(skills / "higor-digest" / "SKILL.md"),
     ]
     assert install.command() in (skills / "higor" / "SKILL.md").read_text()
+    assert (tmp_path / ".higor").is_dir()  # the folder is now a workspace
 
 
 def test_digest_skill_is_for_the_researcher_to_invoke():

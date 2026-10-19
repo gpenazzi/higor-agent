@@ -28,8 +28,8 @@ higor_agent/
   view.py         Textual viewer; follows last_session.json, writes the reading log
   install.py      renders harness wrappers from agent/higor.md, with the full command path
   cli.py          one subcommand per tool, plus view / profile / install / digest-prompt
-  paths.py        every on-disk location (tests monkeypatch HIGOR_DIR)
-  models.py       UserProfile, Paper, PaperInteraction, HigorError/SearchError/ProfileError
+  paths.py        workspace discovery and every on-disk location (tests monkeypatch HIGOR_DIR)
+  models.py       UserProfile, Paper, PaperInteraction, HigorError and subclasses
 integrations/     generated reference copies of the wrappers; regenerate, never hand-edit
 ```
 
@@ -64,10 +64,12 @@ integrations/     generated reference copies of the wrappers; regenerate, never 
   never through Rich (it would eat `[brackets]` as markup).
 - Agent instructions live in `agent/higor.md`, never inline and never duplicated per
   harness. Write commands there as `higor-agent <command>`; rendering substitutes the
-  runnable `uv run --directory <checkout>` form. After editing it run
+  runnable `uv run --project <checkout>` form. `--project`, not `--directory`: the
+  commands must keep the agent's working directory to find its workspace. After editing it run
   `higor-agent install reference`; a test fails if the checked-in copies drift.
-- Errors: `HigorError` → `SearchError` / `ProfileError`.
-- `logging`, not `print`. The CLI logs to `$HIGOR_DIR/higor-agent.log`. Rich and Textual
+- Errors: `HigorError` → `SearchError` / `ProfileError` / `WorkspaceError`.
+- `logging`, not `print`. The CLI logs to `.higor/higor-agent.log`, or to stderr
+  outside a workspace. Rich and Textual
   are display only.
 - S2 requests are serialised and throttled (`S2_MIN_INTERVAL`); `S2_API_KEY` lifts it.
   The instructions tell the agent to use the commands, not its own web requests: the
@@ -79,8 +81,11 @@ integrations/     generated reference copies of the wrappers; regenerate, never 
 
 ## Storage layout
 
-Defaults to `~/.higor`, shared with the original Higor (same schemas). `HIGOR_DIR`
-overrides it.
+All state is local to a workspace: the folder the researcher runs their agent in, which
+holds a `.higor/` directory. `paths.find_state_dir` looks in the current directory and its
+parents, stopping below `$HOME` so a stray `~/.higor` never captures everything. Outside a
+workspace, commands raise `WorkspaceError` rather than write elsewhere. `install` and
+`profile` create the directory; `HIGOR_DIR` points at one directly.
 
 ```
 profile.toml         user profile (incl. [sources] and impact_weight)

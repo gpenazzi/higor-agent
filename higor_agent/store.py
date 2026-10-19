@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def log_interaction(interaction: PaperInteraction) -> None:
-    """Append one interaction to ``~/.higor/reading_log.jsonl``."""
+    """Append one interaction to the workspace's ``.higor/reading_log.jsonl``."""
     path = paths.reading_log_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -64,10 +64,7 @@ def load_last_session() -> tuple[list[Paper], datetime] | None:
     """Return ``(papers, fetched_at)`` from the last session, or ``None``."""
     path = paths.last_session_path()
     if not path.exists():
-        legacy = paths.HIGOR_DIR / "cache" / "last_session.json"  # pre-redesign location
-        if not legacy.exists():
-            return None
-        path = legacy
+        return None
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
         papers = [Paper.model_validate(p) for p in raw["papers"]]
