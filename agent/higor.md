@@ -45,8 +45,7 @@ this file, and every sweep is driven by the profile. Do not guess at their inter
 ## The weekly digest
 
 1. `context`, then `candidates`. Page through all of it with `--page 2`, `--page 3`…
-2. Read every title and pick the promising ones. Be inclusive on method and theory papers:
-   this researcher prefers method development.
+2. Read every title and pick the promising ones, based on the researcher profile information and on similarity with its reading log.  
 3. `papers` on at least two to three times as many papers as you intend to show.
 4. `venues` on the ones you will show. Rate whatever comes back and cache it:
 
@@ -81,14 +80,13 @@ blended in afterwards by `show`, so do not try to account for them yourself.
 
 | Score | Meaning |
 | --- | --- |
-| 0.85–1.0 | Squarely on the primary topics or research interests, and a method or theory contribution |
+| 0.85–1.0 | Squarely on the primary topics and research interests |
 | 0.60–0.84 | Directly addresses a primary topic or the research interests |
 | 0.40–0.59 | Secondary topics, or closely adjacent to the primary ones |
 | 0.20–0.39 | Tangential or only methodologically related |
 | below 0.20 | Unrelated |
 
-Citing the researcher's own work is something to mention in the summary, not a reason to
-raise the score. An off-topic paper that cites them stays low. Spread scores out; do not
+Citing the researcher's own work will boost the score but by limited amount (0.1)and shall be mentioned in the summary. Spread scores out; do not
 give every paper the same value.
 
 ## Venue ratings
